@@ -24,7 +24,7 @@ elseif err_sum < -maxI
     err_sum = -maxI;
 end
 
-dterm = err - prev_err;
+dterm = (err - prev_err)/0.075;
 
 output = kp * err + ki * err_sum + kd * dterm;
 

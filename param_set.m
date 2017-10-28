@@ -20,8 +20,6 @@ g = -9.81; % m/s^2 in the z axis (downward)
 %
 %       z (out of page)
 
-
-
 global qsize
 global prop
 global arm
@@ -55,6 +53,38 @@ Iq = [Ixx 0 0;0 Iyy 0;0 0 Izz];   %Ixx Iyy Izz
 Im = 0.00004; % moment of inertia for rotor
 
 b_drag = 0.1; % drag constant
+
+%% Quad PID
+% rate
+global rate_p_kp % pitch
+global rate_p_ki
+global rate_p_kd
+
+global rate_r_kp % roll
+global rate_r_ki
+global rate_r_kd
+
+global rate_y_kp % yaw
+global rate_y_ki
+global rate_y_kd
+
+% angle
+global angle_p_kp % pitch
+global angle_r_kp % roll
+global angle_y_kp % yaw
+
+% altitude
+global alt_kp
+global alt_ki
+global alt_kd
+
+rate_r_kp = 0.01;
+rate_r_ki = 0;
+rate_r_kd = 0;
+
+angle_p_kp = 1; % pitch
+angle_r_kp = 1; % roll
+angle_y_kp = 1; % yaw
 
 %% Simulation setup 
 
