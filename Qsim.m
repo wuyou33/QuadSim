@@ -28,8 +28,9 @@ figure(1);
 for steps = 1:20000
     tic
     
-    pwm = attitude_controller([0 30 0], angles, omega, 20);
-      
+    pwm = attitude_controller([10 10 5], angles, omega, 20);
+
+    
     [R, pos, angles, omega] = quad_dynamics(pwm, [], []);
 
     
@@ -47,7 +48,7 @@ for steps = 1:20000
     %zlim([0 n]);
     axis equal 
     
-    pause(0.0001);
+    pause(0.001);
     
     dt = toc;
 end
