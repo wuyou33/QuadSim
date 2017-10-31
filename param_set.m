@@ -90,4 +90,4 @@ angle_y_kp = 1; % yaw
 
 global dt 
 
-dt = 0.028; % second
+dt = 0.01; % second
