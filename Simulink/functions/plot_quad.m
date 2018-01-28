@@ -1,15 +1,15 @@
-function plot_quad(R, pos)
+function plot_quad(state)
 %% init parameters
-param_set
+
 
 % plot on figure 1
 
 
-x = pos(1);
-y = pos(2);
-z = pos(3);
+x = state(1);
+y = state(2);
+z = state(3);
 
-prop = prop * 25.4 / 2 /1000; % convert to radius mm
+prop = quad.prop_r;
 normal = [0 0 0;0 0 1]; % normal pointing +z direction
 theta=0:0.01:2*pi;
 

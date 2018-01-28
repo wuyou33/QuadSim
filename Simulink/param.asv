@@ -1,0 +1,35 @@
+% creating parameters for workspaces
+% all length in mm
+%% quad dimensions
+quad.r = 250; % length of quad arm
+quad.prop_r = 152.4;
+quad.motor_h = 50; % height of motor
+
+
+%% dynamic properties
+quad.ct = 1; % thrust coefficient
+quad.cq = 1; % drag coefficient
+
+
+    tunnel_r = 1000;
+    tunnel_l = 6000; % tunnel length;
+    
+surfT_x = [0 tunnel_l tunnel_l 0];
+surfT_y = [-tunnel_r -tunnel_r tunnel_r tunnel_r];
+surfT_z = [2*tunnel_r 2*tunnel_r 2*tunnel_r 2*tunnel_r];
+
+surfB_x = [0 tunnel_l tunnel_l 0];
+surfB_y = [-tunnel_r -tunnel_r tunnel_r tunnel_r];
+surfB_z = [0 0 0 0];
+
+surfL_x = [0 tunnel_l tunnel_l 0];
+surfL_y = [-tunnel_r -tunnel_r -tunnel_r tunnel_r];
+surfL_z = [2*tunnel_r 2*tunnel_r 0 2*tunnel_r];
+
+surfR_x = [0 tunnel_l tunnel_l 0];
+surfR_y = [-tunnel_r -tunnel_r tunnel_r tunnel_r];
+surfR_z = [2*tunnel_r 2*tunnel_r 2*tunnel_r 2*tunnel_r];
+
+fill3(surfT_x,surfT_y,surfT_z,'r')
+grid on
+alpha(0.3)
