@@ -126,6 +126,8 @@ function InitializeConditions(block)
 
 
 function Outputs(block)
+    clf;
+
 
 %% variable assignments
     quad = block.DialogPrm(1).Data;
@@ -144,7 +146,7 @@ function Outputs(block)
     normal = [0 0 0;0 0 1]; % normal pointing +z direction
     theta=0:0.01:2*pi;
 
-    sr = quad.r/50; % centre sphere radius;
+    sr = quad.r/10; % centre sphere radius;
     
     fx = [-1 1 -1 1] * quad.r;
     fy = [-1 1 1 -1] * quad.r;

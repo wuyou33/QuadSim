@@ -12,9 +12,6 @@ function setup(block)
   block.NumInputPorts  = 1;
   block.NumOutputPorts = 12;
   
-  block.SetPreCompInpPortInfoToDynamic;
-  block.SetPreCompOutPortInfoToDynamic;
-  
   % Override the input port properties.
   % These are the motor inputs
   block.InputPort(1).Dimensions        = -1;
@@ -141,7 +138,7 @@ function InitializeConditions(block)
     x0 = block.DialogPrm(2).Data;
     
     % initial condition in deg ... convert to rad
-    phi = 30;%x0.phi;
+    phi = x0.phi;
     the = x0.the;
     psi = x0.psi;
     p = x0.p;
@@ -150,7 +147,7 @@ function InitializeConditions(block)
     
     X = x0.X;
     Y = x0.Y;
-    Z = 100;
+    Z = x0.Z;
     u = x0.u;
     v = x0.v;
     w = x0.w;
@@ -171,7 +168,7 @@ function InitializeConditions(block)
 function Outputs(block)
 
     for i = 1:12
-        block.OutputPort(i).Data = block.ContStates.Data(i); 
+        block.OutputPort(1).Data = block.ContStates.Data(i); 
     end
     
     
@@ -180,17 +177,15 @@ function Outputs(block)
 
 
 function Derivatives(block)
-    
-    quad = block.DialogPrm(1).Data;
 
     % x y z in units of m
-    X = block.ContStates.Data(1)
-    Y = block.ContStates.Data(2)
-    Z = block.ContStates.Data(3)
+    X = block.ContStates.Data(1);
+    Y = block.ContStates.Data(2);
+    Z = block.ContStates.Data(3);
     % u v w in units of m/s
-    dX = block.ContStates.Data(4);
-    dY = block.ContStates.Data(5);
-    dZ = block.ContStates.Data(6);
+    u = block.ContStates.Data(4);
+    v = block.ContStates.Data(5);
+    w = block.ContStates.Data(6);
     % Phi the Psi in radians
     phi = block.ContStates.Data(7);
     the = block.ContStates.Data(8);
@@ -209,7 +204,19 @@ function Derivatives(block)
     %% transformation matrx0es
     
     % rotational matrix -> Z-Y-X rotation    
-    R = Rzyx([phi the psi]);
+    r11 = cosd(psi) * cosd(the);
+    r12 = cosd(psi) * sind(the) * sind(phi) - sind(psi) * cosd(phi);
+    r13 = cosd(psi) * sind(the) * cosd(phi) + sind(psi) * sind(phi);
+    r21 = sind(psi) * cosd(the);
+    r22 = sind(psi) * sind(the) * sind(phi) + cosd(psi) * cosd(phi);
+    r23 = sind(psi) * sind(the) * cosd(phi) - cosd(psi) * sind(phi);
+    r31 = -sind(the);
+    r32 = cosd(the) * sind(phi);
+    r33 = cosd(the) * cosd(phi);
+
+    R = [r11 r12 r13; 
+         r21 r22 r23; 
+         r31 r32 r33];
     
     %inverted Wronskian
     iW = [1 sind(phi)*tand(the) cosd(phi)*tand(the);  %Rx
@@ -217,11 +224,11 @@ function Derivatives(block)
           0 sind(phi)/cosd(the) cosd(phi)/cosd(the)]; %RZ   
     
     %% linear accel in inertial/world frame
-    T = quad.ct * sum(w.^2);
+    T = quad.ct * sum(motor.^2);
     
     a = quad.g * [0;0;1] + R * T/quad.mass;  
     
-    V_bi = [dX dY dZ]';   % velocity of body frame in inertial frame
+    V_bi = [u v w]';   % velocity of body frame in inertial frame
   
     %% angular accel in inertial/world frame
     o = [p q r]';
@@ -233,16 +240,16 @@ function Derivatives(block)
 
     tau = round(tau, 10); % to remove close to zero build up
     
-    gyro = quad.Jr * [q;p;0] * [-w(1) + w(2) -w(3) + w(4)]
+    gyro = quad.Jr * [q;p;0] * [-w(1) + w(2) -w(3) + w(4)];
     
-    do = inv(quad.J)*(cross(-o,quad.J*o) + tau - gyro)% omega dot - angular velocity of body frame in inertial frame
+    do = inv(quad.J)*(cross(-o,quad.J*o) + tau - gyro);% omega dot - angular velocity of body frame in inertial frame
     
     omega_bi = iW * o; % angular velocity in interial frame
     
     %% assigning the derivatives (in inertial frame)
-    dX = V_bi(1);   %linear  velocity
-    dT = V_bi(2);
-    dZ = V_bi(3);    
+    dx = V_bw(1);   %linear  velocity
+    dy = V_bw(2);
+    dz = V_bw(3);    
     du = a(1);  %linear acceleration
     dv = a(2);
     dw = a(3);
@@ -250,16 +257,16 @@ function Derivatives(block)
     dphi = omega_bi(1); % angular vel
     dthe = omega_bi(2);
     dpsi = omega_bi(3);
-    dp = do(1);         % angular accel
-    dq = do(2);
+    dp = do(3);         % angular accel
+    dq = do(3);
     dr = do(3);
     
     % ground condition
     
     % state derivative vector
-    f = [dX dY dZ du dv dw dphi dthe dpsi dp dq dr]';
+    f = [dx dy dz du dv dw dphi dthe dpsi dp dq dr]';
     
-    block.Derivatives.Data = f;
+    block.Derviatives.Data = f;
 %endfunction
 
 
