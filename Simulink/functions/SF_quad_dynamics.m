@@ -184,9 +184,9 @@ function Derivatives(block)
     quad = block.DialogPrm(1).Data;
 
     % x y z in units of m
-    X = block.ContStates.Data(1)
-    Y = block.ContStates.Data(2)
-    Z = block.ContStates.Data(3)
+    X = block.ContStates.Data(1);
+    Y = block.ContStates.Data(2);
+    Z = block.ContStates.Data(3);
     % u v w in units of m/s
     dX = block.ContStates.Data(4);
     dY = block.ContStates.Data(5);
@@ -203,7 +203,7 @@ function Derivatives(block)
 
     
     % motor rotational speed
-    w = block.InputPort(1).Data; % in RPM
+    w = block.InputPort(1).Data % in RPM
     
 
     %% transformation matrx0es
@@ -241,8 +241,8 @@ function Derivatives(block)
     omega_bi = iW * o; % angular velocity in interial frame
     
     %% assigning the derivatives (in inertial frame)
-    dX = V_bi(1);   %linear  velocity
-    dT = V_bi(2);
+    dX = 0;%V_bi(1);   %linear  velocity
+    dY = 0;%V_bi(2);
     dZ = V_bi(3);    
     du = a(1);  %linear acceleration
     dv = a(2);
