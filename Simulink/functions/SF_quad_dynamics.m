@@ -17,13 +17,12 @@ function setup(block)
   
   % Override the input port properties.
   % These are the motor inputs
-  block.InputPort(1).Dimensions        = -1;
+  block.InputPort(1).Dimensions        = 4;
   block.InputPort(1).DirectFeedthrough = false;
   block.InputPort(1).SamplingMode      = 'Sample';
   block.InputPort(1).Complexity  = 'Real';
   block.InputPort(1).DatatypeID  = 0; % double
   block.InputPort(1).Complexity  = 'Real';
-
 
 
   % Override the output port properties.
@@ -140,23 +139,24 @@ function InitializeConditions(block)
     
     x0 = block.DialogPrm(2).Data;
     
+    
     % initial condition in deg ... convert to rad
-    phi = 0;%x0.phi;
-    the = 0;%x0.the;
-    psi = 0;%x0.psi;
+    phi = 0;
+    the = 0;
+    psi = 0;
     p = x0.p;
     q = x0.q;
     r = x0.r;
     
-    X = x0.X;
-    Y = x0.Y;
+    X = 0;
+    Y = 0;
     Z = 0;
     u = x0.u;
     v = x0.v;
     w = x0.w;
     
     init = [X Y Z u v w phi the psi p q r];
-    state = zeros(1,12);
+
     
     for a = 1:12
         block.ContStates.Data(a) = init(a);
@@ -192,7 +192,7 @@ function Derivatives(block)
     dY = block.ContStates.Data(5);
     dZ = block.ContStates.Data(6);
     % Phi the Psi in radians
-    phi = block.ContStates.Data(7)
+    phi = block.ContStates.Data(7);
     the = block.ContStates.Data(8);
     psi = block.ContStates.Data(9);    
     % p q r in units of deg/sec
@@ -203,7 +203,7 @@ function Derivatives(block)
 
     
     % motor rotational speed
-    w = block.InputPort(1).Data % in RPM
+    w = block.InputPort(1).Data; % in RPM
     
 
     %% transformation matrx0es
@@ -219,7 +219,7 @@ function Derivatives(block)
     %% linear accel in inertial/world frame
     T = quad.ct *quad.A * quad.rho* sum(w.^2);
     
-    a = -quad.g * [0;0;1] + R * [0;0;1] * T/quad.mass  
+    a = -quad.g * [0;0;1] + R * [0;0;1] * T/quad.mass;  
     
     V_bi = [dX dY dZ]';   % velocity of body frame in inertial frame
   
@@ -241,8 +241,8 @@ function Derivatives(block)
     omega_bi = iW * o; % angular velocity in interial frame
     
     %% assigning the derivatives (in inertial frame)
-    dX = 0;%V_bi(1);   %linear  velocity
-    dY = 0;%V_bi(2);
+    dX = V_bi(1);   %linear  velocity
+    dY = V_bi(2);
     dZ = V_bi(3);    
     du = a(1);  %linear acceleration
     dv = a(2);
