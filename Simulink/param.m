@@ -1,19 +1,21 @@
 % creating parameters for workspaces
 % all length in mm
 %% quad dimensions
-quad.r = 250; % length of quad arm
-quad.prop_r = 152.4;
-quad.motor_h = 50; % height of motor
+quad.r = 250/1000; % length of quad arm in m
+quad.prop_r = 152.4/1000;
+quad.motor_h = 50/1000; % height of motor
 
 
 %% dynamic properties
-quad.g = 9.81;
-quad.mass = 2.5;
+quad.g = 9.81; %m/s^2
+quad.mass = 4; %kg
 
 quad.Ixx = 0.082;
 quad.Iyy = 0.082;
 quad.Izz = 0.149;
 
+quad.rho = 1.184;
+quad.A = 0.0855
 quad.ct = 0.0048; % thrust coefficient
 quad.cq = 2.315e-4; % drag coefficient
 quad.J = [quad.Ixx 0 0;0 quad.Iyy 0;0 0 quad.Izz];
@@ -35,3 +37,7 @@ x0.Z = 0;
 x0.u = 0;
 x0.v = 0;
 x0.w = 0;
+
+
+
+%% testing

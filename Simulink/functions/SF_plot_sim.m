@@ -213,8 +213,8 @@ hold on;
 
 
 %% plot environment
-    tunnel_r = 1500;
-    tunnel_l = 6000; % tunnel length;
+    tunnel_r = 1.5;
+    tunnel_l = 6; % tunnel length;
     
     surfT_x = [0 tunnel_l tunnel_l 0];
     surfT_y = [-tunnel_r -tunnel_r tunnel_r tunnel_r];

@@ -25,7 +25,7 @@ function setup(block)
   block.InputPort(1).Complexity  = 'Real';
 
 
-  
+
   % Override the output port properties.
    for a = 1:12
       block.OutputPort(a).Dimensions       = 1;
@@ -141,16 +141,16 @@ function InitializeConditions(block)
     x0 = block.DialogPrm(2).Data;
     
     % initial condition in deg ... convert to rad
-    phi = 30;%x0.phi;
-    the = x0.the;
-    psi = x0.psi;
+    phi = 0;%x0.phi;
+    the = 0;%x0.the;
+    psi = 0;%x0.psi;
     p = x0.p;
     q = x0.q;
     r = x0.r;
     
     X = x0.X;
     Y = x0.Y;
-    Z = 100;
+    Z = 0;
     u = x0.u;
     v = x0.v;
     w = x0.w;
@@ -192,7 +192,7 @@ function Derivatives(block)
     dY = block.ContStates.Data(5);
     dZ = block.ContStates.Data(6);
     % Phi the Psi in radians
-    phi = block.ContStates.Data(7);
+    phi = block.ContStates.Data(7)
     the = block.ContStates.Data(8);
     psi = block.ContStates.Data(9);    
     % p q r in units of deg/sec
@@ -217,9 +217,9 @@ function Derivatives(block)
           0 sind(phi)/cosd(the) cosd(phi)/cosd(the)]; %RZ   
     
     %% linear accel in inertial/world frame
-    T = quad.ct * sum(w.^2);
+    T = quad.ct *quad.A * quad.rho* sum(w.^2);
     
-    a = quad.g * [0;0;1] + R * T/quad.mass;  
+    a = -quad.g * [0;0;1] + R * [0;0;1] * T/quad.mass  
     
     V_bi = [dX dY dZ]';   % velocity of body frame in inertial frame
   
@@ -227,15 +227,16 @@ function Derivatives(block)
     o = [p q r]';
     
     % torque by motor
-    tau = [quad.r*quad.ct*(w(1)^2 - w(3)^2 + w(2)^2 - w(4)^2); ...
-           quad.r*quad.ct*(w(1)^2 - w(2)^2 + w(3)^2 - w(4)^2); ...
-           quad.cq * (-w(1)^2 + w(3)^2 + w(2)^2 - w(4)^2)];
+    tau = [quad.r*quad.ct* quad.A * quad.rho*(-w(1)^2 - w(2)^2 + w(3)^2 + w(4)^2); ...
+           quad.r*quad.ct* quad.A * quad.rho*(-w(1)^2 + w(2)^2 - w(3)^2 + w(4)^2); ...
+           quad.cq * quad.A * quad.rho *(-w(1)^2 + w(3)^2 + w(2)^2 - w(4)^2)]; 
+ 
 
     tau = round(tau, 10); % to remove close to zero build up
     
-    gyro = quad.Jr * [q;p;0] * [-w(1) + w(2) -w(3) + w(4)]
+    gyro = quad.Jr * [q;p;0] * [-w(1) + w(2) -w(3) + w(4)];
     
-    do = inv(quad.J)*(cross(-o,quad.J*o) + tau - gyro)% omega dot - angular velocity of body frame in inertial frame
+    do = inv(quad.J)*(cross(-o,quad.J*o) + tau);% - gyro);% omega dot - angular velocity of body frame in inertial frame
     
     omega_bi = iW * o; % angular velocity in interial frame
     
