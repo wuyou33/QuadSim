@@ -141,7 +141,7 @@ function InitializeConditions(block)
     
     
     % initial condition in deg ... convert to rad
-    phi = 0;
+    phi = pi/12;
     the = 0;
     psi = 0;
     p = x0.p;
@@ -150,7 +150,7 @@ function InitializeConditions(block)
     
     X = 0;
     Y = 0;
-    Z = 0;
+    Z = .5;
     u = x0.u;
     v = x0.v;
     w = x0.w;
@@ -192,7 +192,7 @@ function Derivatives(block)
     dY = block.ContStates.Data(5);
     dZ = block.ContStates.Data(6);
     % Phi the Psi in radians
-    phi = block.ContStates.Data(7);
+    phi = block.ContStates.Data(7)
     the = block.ContStates.Data(8);
     psi = block.ContStates.Data(9);    
     % p q r in units of deg/sec
@@ -212,9 +212,9 @@ function Derivatives(block)
     R = Rzyx([phi the psi]);
     
     %inverted Wronskian
-    iW = [1 sind(phi)*tand(the) cosd(phi)*tand(the);  %Rx
-          0 cosd(phi)           -sind(phi);           %RY
-          0 sind(phi)/cosd(the) cosd(phi)/cosd(the)]; %RZ   
+    iW = [1 sin(phi)*tan(the) cos(phi)*tan(the);  %Rx
+          0 cos(phi)           -sin(phi);           %RY
+          0 sin(phi)/cos(the) cos(phi)/cos(the)]; %RZ   
     
     %% linear accel in inertial/world frame
     T = quad.ct *quad.A * quad.rho* sum(w.^2);
