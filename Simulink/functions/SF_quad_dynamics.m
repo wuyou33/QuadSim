@@ -141,7 +141,7 @@ function InitializeConditions(block)
     
     
     % initial condition in deg ... convert to rad
-    phi = pi/12;
+    phi = pi/24;
     the = 0;
     psi = 0;
     p = x0.p;

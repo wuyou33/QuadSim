@@ -41,3 +41,27 @@ x0.w = 0;
 
 
 %% testing
+close all
+state = [0 0 0.2 pi/6 0 0];
+
+
+
+
+
+% R = Rzyx(angle);
+% pc = R'*pc';
+% cline = R'*cline';
+% 
+% cline = cline';
+% pc = pc';
+
+close all
+plot(pc(:, 2), pc(:,3),'.r') 
+hold on
+%plot(cline(:, 2), cline(:,3), 'ob')
+%plot(pos_y, pos_z, 'ok')
+hold off
+
+axis equal
+
+%% need another & in the wall check

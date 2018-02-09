@@ -9,19 +9,24 @@ setup(block);
 function setup(block)
 
   % Register the number of ports.
-  block.NumInputPorts  = 1;
+  block.NumInputPorts  = 2;
   block.NumOutputPorts = 0;
   
   % Override the input port properties.
 
-  block.InputPort(1).Dimensions        = -1;
+   block.InputPort(1).Dimensions        = 6;
   block.InputPort(1).DirectFeedthrough = true;
   block.InputPort(1).SamplingMode      = 'Sample';
   block.InputPort(1).Complexity  = 'Real';
   block.InputPort(1).DatatypeID  = 0; % double
   block.InputPort(1).Complexity  = 'Real';
 
-  
+    block.InputPort(2).Dimensions        = [1086,3];
+  block.InputPort(2).DirectFeedthrough = true;
+  block.InputPort(2).SamplingMode      = 'Sample';
+  block.InputPort(2).Complexity  = 'Real';
+  block.InputPort(2).DatatypeID  = 0; % double
+  block.InputPort(2).Complexity  = 'Real';
   
 
   % Register the parameters.
@@ -132,6 +137,7 @@ function Outputs(block)
 %% variable assignments
     quad = block.DialogPrm(1).Data;
     state = block.InputPort(1).Data;
+    pc = block.InputPort(2).Data;
     
     X = state(1);
     Y = state(2);
@@ -236,6 +242,21 @@ hold on;
     fill3(surfB_x,surfB_y,surfB_z,'k', 'linewidth', 2, 'FaceAlpha', 0.2)
     fill3(surfL_x,surfL_y,surfL_z,'k', 'linewidth', 2, 'FaceAlpha', 0.2)
     fill3(surfR_x,surfR_y,surfR_z,'k', 'linewidth', 2, 'FaceAlpha', 0.2)
+
+%% plot lidar scan    
+    scatter3(pc(6:end,1), pc(6:end,2), pc(6:end,3),10, 'filled', 'm','MarkerFaceAlpha', 0.2 ) 
+    plot3([X pc(1,1)],[Y pc(1,2)], [Z pc(1,3)], 'm', 'LineStyle', '--', 'LineWidth', 0.2)
+    plot3([X pc(2,1)],[Y pc(2,2)], [Z pc(2,3)], 'm', 'LineStyle', '--', 'LineWidth', 0.2)
+    plot3([X pc(3,1)],[Y pc(3,2)], [Z pc(3,3)], 'm', 'LineStyle', '--', 'LineWidth', 0.2)
+    plot3([X pc(4,1)],[Y pc(4,2)], [Z pc(4,3)], 'm', 'LineStyle', '--', 'LineWidth', 0.2)
+    plot3([X pc(5,1)],[Y pc(5,2)], [Z pc(5,3)], 'm', 'LineStyle', '--', 'LineWidth', 0.2)
+    
+    plot3(pc(1,1),pc(1,2),pc(1,3), 'or')
+    plot3(pc(2,1),pc(2,2),pc(2,3), 'or')
+    plot3(pc(3,1),pc(3,2),pc(3,3), 'or')
+    plot3(pc(4,1),pc(4,2),pc(4,3), 'or')
+    plot3(pc(5,1),pc(5,2),pc(5,3), 'or')
+    
     
     
 % plot visulisation settings
