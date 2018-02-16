@@ -9,7 +9,7 @@ setup(block);
 function setup(block)
 
   % Register the number of ports.
-  block.NumInputPorts  = 1;
+  block.NumInputPorts  = 2;
   block.NumOutputPorts = 12;
   
   block.SetPreCompInpPortInfoToDynamic;
@@ -24,6 +24,12 @@ function setup(block)
   block.InputPort(1).DatatypeID  = 0; % double
   block.InputPort(1).Complexity  = 'Real';
 
+  block.InputPort(2).Dimensions        = 3;
+  block.InputPort(2).DirectFeedthrough = false;
+  block.InputPort(2).SamplingMode      = 'Sample';
+  block.InputPort(2).Complexity  = 'Real';
+  block.InputPort(2).DatatypeID  = 0; % double
+  block.InputPort(2).Complexity  = 'Real';
 
   % Override the output port properties.
    for a = 1:12
@@ -149,7 +155,7 @@ function InitializeConditions(block)
     r = x0.r;
     
     X = 0;
-    Y = 0;
+    Y = 0.3;
     Z = 1;
     u = x0.u;
     v = x0.v;
@@ -204,6 +210,8 @@ function Derivatives(block)
     
     % motor rotational speed
     w = block.InputPort(1).Data; % in RPM
+    tau_d = block.InputPort(2).Data
+    
     
 
     %% transformation matrx0es
@@ -229,14 +237,14 @@ function Derivatives(block)
     % torque by motor
     tau = [quad.r*quad.ct* quad.A * quad.rho*(-w(1)^2 - w(2)^2 + w(3)^2 + w(4)^2); ...
            quad.r*quad.ct* quad.A * quad.rho*(-w(1)^2 + w(2)^2 - w(3)^2 + w(4)^2); ...
-           quad.cq * quad.A * quad.rho *(-w(1)^2 + w(3)^2 + w(2)^2 - w(4)^2)]; 
+           quad.cq * quad.A * quad.rho *(-w(1)^2 + w(3)^2 + w(2)^2 - w(4)^2)]
  
 
     tau = round(tau, 10); % to remove close to zero build up
     
     gyro = quad.Jr * [q;p;0] * [-w(1) + w(2) -w(3) + w(4)];
     
-    do = inv(quad.J)*(cross(-o,quad.J*o) + tau);% - gyro);% omega dot - angular velocity of body frame in inertial frame
+    do = inv(quad.J)*(cross(-o,quad.J*o) + tau + tau_d);% - gyro);% omega dot - angular velocity of body frame in inertial frame
     
     omega_bi = iW * o; % angular velocity in interial frame
     
