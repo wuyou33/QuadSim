@@ -9,8 +9,8 @@ setup(block);
 function setup(block)
 
   % Register the number of ports.
-  block.NumInputPorts  = 2;
-  block.NumOutputPorts = 8;
+  block.NumInputPorts  = 1;
+  block.NumOutputPorts = 12;
   
   block.SetPreCompInpPortInfoToDynamic;
   block.SetPreCompOutPortInfoToDynamic;
@@ -24,16 +24,10 @@ function setup(block)
   block.InputPort(1).DatatypeID  = 0; % double
   block.InputPort(1).Complexity  = 'Real';
 
-  block.InputPort(2).Dimensions        = 6;
-  block.InputPort(2).DirectFeedthrough = false;
-  block.InputPort(2).SamplingMode      = 'Sample';
-  block.InputPort(2).Complexity  = 'Real';
-  block.InputPort(2).DatatypeID  = 0; % double
-  block.InputPort(2).Complexity  = 'Real';
   
   
   % Override the output port properties.
-   for a = 1:8
+   for a = 1:12
       block.OutputPort(a).Dimensions       = 1;
       block.OutputPort(a).SamplingMode     = 'Sample';
       block.OutputPort(a).DatatypeID  = 0; % double
@@ -46,7 +40,7 @@ function setup(block)
   %block.DialogPrmsTunable = {'Tunable','Nontunable','SimOnlyTunable'};
   
   % Set up the continuous states.
-  block.NumContStates = 8;
+  block.NumContStates = 12;
 
   % Register the sample times.
   %  [0 offset]            : Continuous sample time
@@ -143,23 +137,25 @@ function CheckPrms(block)
 
 function InitializeConditions(block)
     
-    x0 = block.InputPort(2).Data;
     quad = block.DialogPrm(1).Data;
-    x0
     % initial condition in deg ... convert to rad
-    y = x0(1);
-    dy = x0(2);
-    z = 1;%x0(3)
-    dz = x0(4);
-    phi = x0(5);
-    dphi = x0(6);
-    u1 = 0.001;
-    uj = 0;
+    y = -1;
+    dy = 0;
+    ddy = 0;
+    y3 = 0;
+    z = 0.3;
+    dz = 0;
+    ddz = 0;
+    z3 = 0;
+    phi =0;
+    dphi = 0;
+    u1 = quad.mass*quad.g/2;
+    uj = 0.00000001;
     
-    init = [y dy z dz phi dphi u1 uj];
+    init = [y dy ddy y3 z dz ddz z3 phi dphi u1 uj];
 
     
-    for a = 1:8
+    for a = 1:12
         block.ContStates.Data(a) = init(a);
         block.OutputPort(a).Data = init(a);
     end
@@ -171,7 +167,7 @@ function InitializeConditions(block)
 
 function Outputs(block)
 
-    for i = 1:8
+    for i = 1:12
         block.OutputPort(i).Data = block.ContStates.Data(i); 
     end
     
@@ -185,14 +181,18 @@ function Derivatives(block)
     quad = block.DialogPrm(1).Data;
 
     % x y z in units of m
-    y = block.ContStates.Data(1)
-    dy = block.ContStates.Data(2)
-    z = block.ContStates.Data(3)
-    dz = block.ContStates.Data(4);
-    phi = block.ContStates.Data(5)
-    dphi = block.ContStates.Data(6);
-    u1 = block.ContStates.Data(7);
-    uj = block.ContStates.Data(8);
+    y = block.ContStates.Data(1);
+    dy = block.ContStates.Data(2);
+    ddy = block.ContStates.Data(3);
+    y3 = block.ContStates.Data(4);
+    z = block.ContStates.Data(5);
+    dz = block.ContStates.Data(6);
+    ddz = block.ContStates.Data(7);
+    z3 = block.ContStates.Data(8);
+    phi = block.ContStates.Data(9);
+    dphi = block.ContStates.Data(10);
+    u1 = block.ContStates.Data(11);
+    uj = block.ContStates.Data(12);
     
     %the extra states 
     
@@ -202,23 +202,26 @@ function Derivatives(block)
     u2 = u(2);
     
     if u1 <= 0
-        u1 = 0;
+        u1 = 1e-6;
     end
       
     
-    %% assigning the derivatives (in inertial frame)
-    ddy = -u1*sin(phi);
-    ddz = u1*cos(phi)-quad.g
-	
-    ddphi = u2*quad.r;
-    
+    %% assigning the derivatives (in inertial frame)  
     du1 = uj;
-    
     duj = us;
+    
+    l = quad.r;
+    
+    ddphi = u2*l;
+    
+    y4 = dphi^2 * sin(phi) * u1 - 2*dphi*cos(phi)*du1 -sin(phi)*us - l*cos(phi)*u1*u2;
+    z4 = -dphi^2 * cos(phi) * u1 - 2*dphi*sin(phi)*du1 + cos(phi)*us -l*sin(phi)*u1*u2;
+	
+    
     % ground condition
     
     % state derivative vector
-    f = [dy ddy dz ddz dphi ddphi du1 duj]';
+    f = [dy ddy y3 y4 dz ddz z3 z4 dphi ddphi du1 duj]';
     
     block.Derivatives.Data = f;
 %endfunction

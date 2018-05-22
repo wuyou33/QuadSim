@@ -14,7 +14,7 @@ function setup(block)
   
   % Override the input port properties.
 
-  block.InputPort(1).Dimensions        = 8;
+  block.InputPort(1).Dimensions        = 12;
   block.InputPort(1).DirectFeedthrough = true;
   block.InputPort(1).SamplingMode      = 'Sample';
   block.InputPort(1).Complexity  = 'Real';
@@ -141,8 +141,8 @@ function Outputs(block)
     
     X = 0;
     Y = state(1);
-    Z = state(3);
-    phi = state(5);
+    Z = state(5);
+    phi = state(9);
     the = 0;
     psi = 0;
     
