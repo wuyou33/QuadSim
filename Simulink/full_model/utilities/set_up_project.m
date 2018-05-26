@@ -11,7 +11,7 @@ project = simulinkproject;
 projectRoot = project.RootFolder;
 
 % Set the location of slprj to be the "work" folder of the current project:
-myCacheFolder = fullfile(projectRoot, 'work/..');
+myCacheFolder = fullfile(projectRoot, 'work');
 if ~exist(myCacheFolder, 'dir')
     mkdir(myCacheFolder)
 end

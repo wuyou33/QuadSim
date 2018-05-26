@@ -9,8 +9,8 @@ setup(block);
 function setup(block)
 
   % Register the number of ports.
-  block.NumInputPorts  = 2;
-  block.NumOutputPorts = 12;
+  block.NumInputPorts  = 1;
+  block.NumOutputPorts = 18;
   
   block.SetPreCompInpPortInfoToDynamic;
   block.SetPreCompOutPortInfoToDynamic;
@@ -24,15 +24,10 @@ function setup(block)
   block.InputPort(1).DatatypeID  = 0; % double
   block.InputPort(1).Complexity  = 'Real';
 
-  block.InputPort(2).Dimensions        = 3;
-  block.InputPort(2).DirectFeedthrough = false;
-  block.InputPort(2).SamplingMode      = 'Sample';
-  block.InputPort(2).Complexity  = 'Real';
-  block.InputPort(2).DatatypeID  = 0; % double
-  block.InputPort(2).Complexity  = 'Real';
-
+  
+  
   % Override the output port properties.
-   for a = 1:12
+   for a = 1:18
       block.OutputPort(a).Dimensions       = 1;
       block.OutputPort(a).SamplingMode     = 'Sample';
       block.OutputPort(a).DatatypeID  = 0; % double
@@ -41,11 +36,11 @@ function setup(block)
 
 
   % Register the parameters.
-  block.NumDialogPrms     = 2;
+  block.NumDialogPrms     = 1;
   %block.DialogPrmsTunable = {'Tunable','Nontunable','SimOnlyTunable'};
   
   % Set up the continuous states.
-  block.NumContStates = 12;
+  block.NumContStates = 18;
 
   % Register the sample times.
   %  [0 offset]            : Continuous sample time
@@ -133,7 +128,6 @@ function setup(block)
 
 function CheckPrms(block)
     quad = block.DialogPrm(1).Data;
-    x0   = block.DialogPrm(2).Data;
  
   
 %endfunction
@@ -143,28 +137,31 @@ function CheckPrms(block)
 
 function InitializeConditions(block)
     
-    x0 = block.DialogPrm(2).Data;
-    
-    
+    quad = block.DialogPrm(1).Data;
     % initial condition in deg ... convert to rad
-    phi = 0;
+    x = 0;
+    dx = 0;
+    y = 0;
+    dy = 0;
+    ddy = 0;
+    y3 = 0;
+    z = 1.5;
+    dz = 0;
+    ddz = 0;
+    z3 = 0;
+    phi =0;
+    dphi = 0;
     the = 0;
+    dthe = 0;
     psi = 0;
-    p = x0.p;
-    q = x0.q;
-    r = x0.r;
+    dpsi = 0;
+    u1 = quad.mass*quad.g/2;
+    uj = 0.00000001;
     
-    X = 0;
-    Y = 0;
-    Z = 1;
-    u = x0.u;
-    v = x0.v;
-    w = x0.w;
-    
-    init = [X Y Z u v w phi the psi p q r];
+    init = [x dx y dy ddy y3 z dz ddz z3 phi dphi the dthe psi dpsi u1 uj];
 
     
-    for a = 1:12
+    for a = 1:18
         block.ContStates.Data(a) = init(a);
         block.OutputPort(a).Data = init(a);
     end
@@ -176,7 +173,7 @@ function InitializeConditions(block)
 
 function Outputs(block)
 
-    for i = 1:12
+    for i = 1:18
         block.OutputPort(i).Data = block.ContStates.Data(i); 
     end
     
@@ -190,83 +187,72 @@ function Derivatives(block)
     quad = block.DialogPrm(1).Data;
 
     % x y z in units of m
-    X = block.ContStates.Data(1);
-    Y = block.ContStates.Data(2);
-    Z = block.ContStates.Data(3);
-    % u v w in units of m/s
-    dX = block.ContStates.Data(4);
-    dY = block.ContStates.Data(5);
-    dZ = block.ContStates.Data(6);
-    % Phi the Psi in radians
-    phi = block.ContStates.Data(7)
-    the = block.ContStates.Data(8);
-    psi = block.ContStates.Data(9);    
-    % p q r in units of deg/sec
-    p = block.ContStates.Data(10);
-    q = block.ContStates.Data(11);
-    r = block.ContStates.Data(12);
-
-
-    
-    % motor rotational speed
-    w = block.InputPort(1).Data; % in RPM
-    tau_d = block.InputPort(2).Data
+    x = block.ContStates.Data(1);
+    dx = block.ContStates.Data(2);
+    y = block.ContStates.Data(3);
+    dy = block.ContStates.Data(4);
+    ddy = block.ContStates.Data(5);
+    y3 = block.ContStates.Data(6);
+    z = block.ContStates.Data(7);
+    dz = block.ContStates.Data(8);
+    ddz = block.ContStates.Data(9);
+    z3 = block.ContStates.Data(10);
+    phi = block.ContStates.Data(11);
+    dphi = block.ContStates.Data(12);
+    the = block.ContStates.Data(13);
+    dthe = block.ContStates.Data(14);
+    psi = block.ContStates.Data(15);
+    dpsi = block.ContStates.Data(16);
+    u1 = block.ContStates.Data(17);
+    uj = block.ContStates.Data(18);
     
     
-
-    %% transformation matrx0es
+    % assigning inputs
+    u = block.InputPort(1).Data; 
+    us = u(1);
+    u2 = u(2);
+    u3 = u(3);
+    u4 = u(4);
     
-    % rotational matrix -> Z-Y-X rotation    
-    R = Rzyx([phi the psi]);
+    if u1 <= 0
+        u1 = 1e-6;
+    end
     
-    %inverted Wronskian
-    iW = [1 sin(phi)*tan(the) cos(phi)*tan(the);  %Rx
-          0 cos(phi)           -sin(phi);           %RY
-          0 sin(phi)/cos(the) cos(phi)/cos(the)]; %RZ   
+    % adding white noise to angular vel
+    dphi = awgn(dphi, 40);
+    dthe = awgn(dthe, 40);
+    dpsi = awgn(dpsi, 40);
+      
+      us = awgn(us, 50);
+      u2 = awgn(u2, 20);
+      u3 = awgn(u3, 20);
+      u4 = awgn(u4, 20);
+      
     
-    %% linear accel in inertial/world frame
-    T = quad.ct *quad.A * quad.rho* sum(w.^2);
+    %% assigning the derivatives (in inertial frame)  
+    % ---- for x theta psi 
+    ddx = u1 * cos(phi) * sin(the);
     
-    a = -quad.g * [0;0;1] + R * [0;0;1] * T/quad.mass;  
+    ddthe = u3;
+    ddpsi = u4;
     
-    V_bi = [dX dY dZ]';   % velocity of body frame in inertial frame
+    % ---- for y z phi
+    du1 = uj;
+    duj = us;
+    
   
-    %% angular accel in inertial/world frame
-    o = [p q r]';
     
-    % torque by motor
-    tau = [quad.r*quad.ct* quad.A * quad.rho*(-w(1)^2 - w(2)^2 + w(3)^2 + w(4)^2); ...
-           quad.r*quad.ct* quad.A * quad.rho*(-w(1)^2 + w(2)^2 - w(3)^2 + w(4)^2); ...
-           quad.cq * quad.A * quad.rho *(-w(1)^2 + w(3)^2 + w(2)^2 - w(4)^2)]
- 
-
-    tau = round(tau, 10); % to remove close to zero build up
+    ddphi = u2;
     
-    gyro = quad.Jr * [q;p;0] * [-w(1) + w(2) -w(3) + w(4)];
-    inv(quad.J)*(cross(-o,quad.J*o) + tau)
-    do = inv(quad.J)*(cross(-o,quad.J*o) + tau + tau_d);% - gyro);% omega dot - angular velocity of body frame in inertial frame
-    
-    omega_bi = iW * o; % angular velocity in interial frame
-    
-    %% assigning the derivatives (in inertial frame)
-    dX = V_bi(1);   %linear  velocity
-    dY = V_bi(2);
-    dZ = V_bi(3);    
-    du = a(1);  %linear acceleration
-    dv = a(2);
-    dw = a(3);
- 
-    dphi = omega_bi(1); % angular vel
-    dthe = omega_bi(2);
-    dpsi = omega_bi(3);
-    dp = do(1);         % angular accel
-    dq = do(2);
-    dr = do(3);
-    
+    y4 = dphi^2 * sin(phi) * u1 - 2*dphi*cos(phi)*du1 -sin(phi)*us - cos(phi)*u1*u2;
+    %z4 = -dphi^2 * cos(phi) * u1 - 2*dphi*sin(phi)*du1 + cos(phi)*us -l*sin(phi)*u1*u2;
+	z4 = -2*du1*dthe*sin(the)*cos(phi) - 2*du1*dphi*cos(the)*sin(phi) ...
+         +2*u1*dthe*dphi*sin(the)*sin(phi) - u1*(dthe^2+dphi^2)*cos(the)*cos(phi) ...
+         +us*cos(the)*cos(phi) - u1*ddthe*sin(the)*cos(phi)-u1*ddphi*cos(the)*sin(phi);
     % ground condition
     
     % state derivative vector
-    f = [dX dY dZ du dv dw dphi dthe dpsi dp dq dr]';
+    f = [dx ddx dy ddy y3 y4 dz ddz z3 z4 dphi ddphi dthe ddthe dpsi ddpsi du1 duj]';
     
     block.Derivatives.Data = f;
 %endfunction

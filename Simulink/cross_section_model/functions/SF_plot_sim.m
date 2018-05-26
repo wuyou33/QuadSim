@@ -9,7 +9,7 @@ setup(block);
 function setup(block)
 
   % Register the number of ports.
-  block.NumInputPorts  = 2;
+  block.NumInputPorts  = 3;
   block.NumOutputPorts = 0;
   
   % Override the input port properties.
@@ -21,14 +21,21 @@ function setup(block)
   block.InputPort(1).DatatypeID  = 0; % double
   block.InputPort(1).Complexity  = 'Real';
 
-    block.InputPort(2).Dimensions        = [1086,3];
+  block.InputPort(2).Dimensions        = [1086,3];
   block.InputPort(2).DirectFeedthrough = true;
   block.InputPort(2).SamplingMode      = 'Sample';
   block.InputPort(2).Complexity  = 'Real';
   block.InputPort(2).DatatypeID  = 0; % double
   block.InputPort(2).Complexity  = 'Real';
   
-
+  block.InputPort(3).Dimensions        = 2;
+  block.InputPort(3).DirectFeedthrough = true;
+  block.InputPort(3).SamplingMode      = 'Sample';
+  block.InputPort(3).Complexity  = 'Real';
+  block.InputPort(3).DatatypeID  = 0; % double
+  block.InputPort(3).Complexity  = 'Real';
+  
+  
   % Register the parameters.
   block.NumDialogPrms     = 1;
   %block.DialogPrmsTunable = {'Tunable','Nontunable','SimOnlyTunable'};
@@ -125,7 +132,7 @@ function CheckPrms(block)
 
 function InitializeConditions(block)
     close all;
-    figure;
+    figure('units','normalized','outerposition',[0 0 1 1]);
 %endfunction
 
 
@@ -138,6 +145,10 @@ function Outputs(block)
     quad = block.DialogPrm(1).Data;
     state = block.InputPort(1).Data;
     pc = block.InputPort(2).Data;
+    pos_d = block.InputPort(3).Data;
+    
+    yd = pos_d(1);
+    zd = pos_d(2);
     
     X = 0;
     Y = state(1);
@@ -257,7 +268,9 @@ hold on;
     plot3(pc(4,1),pc(4,2),pc(4,3), 'or')
     plot3(pc(5,1),pc(5,2),pc(5,3), 'or')
     
+%% target position
     
+    plot3(0, yd, zd, 'xr','MarkerSize', 12);
     
 % plot visulisation settings
 xlim([-tunnel_l/10 tunnel_l])
