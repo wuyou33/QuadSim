@@ -9,14 +9,14 @@ setup(block);
 function setup(block)
 
   % Register the number of ports.
-  block.NumInputPorts  = 1;
+  block.NumInputPorts  = 2;
   block.NumOutputPorts = 18;
   
   block.SetPreCompInpPortInfoToDynamic;
   block.SetPreCompOutPortInfoToDynamic;
   
   % Override the input port properties.
-  % These are the motor inputs
+  % input u
   block.InputPort(1).Dimensions        = 4;
   block.InputPort(1).DirectFeedthrough = false;
   block.InputPort(1).SamplingMode      = 'Sample';
@@ -24,6 +24,13 @@ function setup(block)
   block.InputPort(1).DatatypeID  = 0; % double
   block.InputPort(1).Complexity  = 'Real';
 
+  % input disturbance
+  block.InputPort(2).Dimensions        = 6;
+  block.InputPort(2).DirectFeedthrough = false;
+  block.InputPort(2).SamplingMode      = 'Sample';
+  block.InputPort(2).Complexity  = 'Real';
+  block.InputPort(2).DatatypeID  = 0; % double
+  block.InputPort(2).Complexity  = 'Real';
   
   
   % Override the output port properties.
@@ -151,7 +158,7 @@ function InitializeConditions(block)
     z3 = 0;
     phi =0;
     dphi = 0;
-    the = 0;
+    the = pi/6;
     dthe = 0;
     psi = 0;
     dpsi = 0;
@@ -218,23 +225,22 @@ function Derivatives(block)
         u1 = 1e-6;
     end
     
-    % adding white noise to angular vel
-    dphi = awgn(dphi, 40);
-    dthe = awgn(dthe, 40);
-    dpsi = awgn(dpsi, 40);
-      
-      us = awgn(us, 50);
-      u2 = awgn(u2, 20);
-      u3 = awgn(u3, 20);
-      u4 = awgn(u4, 20);
-      
+    d = block.InputPort(2).Data;
+    fxd = d(1);    % disturbance: force x
+    fyd = d(2);    % disturbance: force y
+    fzd = d(3);    % disturbance: force z
+    tau_rd = d(4); % disturbance: torque roll
+    tau_pd = d(5); % disturbance: torque pitch
+    tau_yd = d(6); % disturbance: torque yaw
     
     %% assigning the derivatives (in inertial frame)  
     % ---- for x theta psi 
-    ddx = u1 * cos(phi) * sin(the);
+    ddx = u1 * cos(phi) * sin(the) + fxd/quad.mass;
+    ddy = ddy + fyd/quad.mass;
+    ddz = ddz + fzd/quad.mass;
     
-    ddthe = u3;
-    ddpsi = u4;
+    ddthe = u3 + tau_pd;
+    ddpsi = u4 + tau_yd;
     
     % ---- for y z phi
     du1 = uj;
@@ -242,7 +248,7 @@ function Derivatives(block)
     
   
     
-    ddphi = u2;
+    ddphi = u2 + tau_rd;
     
     y4 = dphi^2 * sin(phi) * u1 - 2*dphi*cos(phi)*du1 -sin(phi)*us - cos(phi)*u1*u2;
     %z4 = -dphi^2 * cos(phi) * u1 - 2*dphi*sin(phi)*du1 + cos(phi)*us -l*sin(phi)*u1*u2;
