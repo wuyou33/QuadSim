@@ -9,7 +9,7 @@ setup(block);
 function setup(block)
 
   % Register the number of ports.
-  block.NumInputPorts  = 1;
+  block.NumInputPorts  = 2;
   block.NumOutputPorts = 12;
   
   block.SetPreCompInpPortInfoToDynamic;
@@ -24,7 +24,12 @@ function setup(block)
   block.InputPort(1).DatatypeID  = 0; % double
   block.InputPort(1).Complexity  = 'Real';
 
-  
+  block.InputPort(2).Dimensions        = 6;
+  block.InputPort(2).DirectFeedthrough = false;
+  block.InputPort(2).SamplingMode      = 'Sample';
+  block.InputPort(2).Complexity  = 'Real';
+  block.InputPort(2).DatatypeID  = 0; % double
+  block.InputPort(2).Complexity  = 'Real';
   
   % Override the output port properties.
    for a = 1:12
@@ -40,7 +45,7 @@ function setup(block)
   %block.DialogPrmsTunable = {'Tunable','Nontunable','SimOnlyTunable'};
   
   % Set up the continuous states.
-  block.NumContStates = 12;
+  block.NumContStates = 8;
 
   % Register the sample times.
   %  [0 offset]            : Continuous sample time
@@ -136,75 +141,109 @@ function CheckPrms(block)
 
 
 function InitializeConditions(block)
+    global ddy
+    global y3
+    global ddz
+    global z3
     
     quad = block.DialogPrm(1).Data;
     % initial condition in deg ... convert to rad
-    y = -1;
+    y = 0;
     dy = 0;
     ddy = 0;
     y3 = 0;
-    z = 0.3;
+    z = 1.5;
     dz = 0;
     ddz = 0;
     z3 = 0;
-    phi =0;
+    phi =pi/6;
     dphi = 0;
-    u1 = quad.mass*quad.g/2;
+    u1 = quad.mass*quad.g/4;
     uj = 0.00000001;
     
-    init = [y dy ddy y3 z dz ddz z3 phi dphi u1 uj];
+    init = [y dy z dz phi dphi u1 uj];
 
     
-    for a = 1:12
+    for a = 1:8
         block.ContStates.Data(a) = init(a);
-        block.OutputPort(a).Data = init(a);
     end
-    
+    block.OutputPort(1).Data = block.ContStates.Data(1);
+    block.OutputPort(2).Data = block.ContStates.Data(2);
+    block.OutputPort(3).Data = ddy;
+    block.OutputPort(4).Data = y3;
+    block.OutputPort(5).Data = block.ContStates.Data(3);
+    block.OutputPort(6).Data = block.ContStates.Data(4);
+    block.OutputPort(7).Data = ddz;
+    block.OutputPort(8).Data = z3;
+    block.OutputPort(9).Data = block.ContStates.Data(5);
+    block.OutputPort(10).Data = block.ContStates.Data(6);
+    block.OutputPort(11).Data = block.ContStates.Data(7);
+    block.OutputPort(12).Data = block.ContStates.Data(8);
     
 %endfunction
 
 
 
 function Outputs(block)
-
-    for i = 1:12
-        block.OutputPort(i).Data = block.ContStates.Data(i); 
-    end
+    global ddy
+    global y3
+    global ddz
+    global z3
     
+    block.OutputPort(1).Data = block.ContStates.Data(1);
+    block.OutputPort(2).Data = block.ContStates.Data(2);
+    block.OutputPort(3).Data = ddy;
+    block.OutputPort(4).Data = y3;
+    block.OutputPort(5).Data = block.ContStates.Data(3);
+    block.OutputPort(6).Data = block.ContStates.Data(4);
+    block.OutputPort(7).Data = ddz;
+    block.OutputPort(8).Data = z3;
+    block.OutputPort(9).Data = block.ContStates.Data(5);
+    block.OutputPort(10).Data = block.ContStates.Data(6);
+    block.OutputPort(11).Data = block.ContStates.Data(7);
+    block.OutputPort(12).Data = block.ContStates.Data(8);
+
     
 %endfunction
 
 
 
 function Derivatives(block)
+    global ddy
+    global y3
+    global ddz
+    global z3
     
     quad = block.DialogPrm(1).Data;
 
     % x y z in units of m
     y = block.ContStates.Data(1);
     dy = block.ContStates.Data(2);
-    ddy = block.ContStates.Data(3);
-    y3 = block.ContStates.Data(4);
-    z = block.ContStates.Data(5);
-    dz = block.ContStates.Data(6);
-    ddz = block.ContStates.Data(7);
-    z3 = block.ContStates.Data(8);
-    phi = block.ContStates.Data(9);
-    dphi = block.ContStates.Data(10);
-    u1 = block.ContStates.Data(11);
-    uj = block.ContStates.Data(12);
+    z = block.ContStates.Data(3);
+    dz = block.ContStates.Data(4);
+    phi = block.ContStates.Data(5);
+    dphi = block.ContStates.Data(6);
+    u1 = block.ContStates.Data(7);
+    uj = block.ContStates.Data(8);
     
     %the extra states 
     
-    % motor rotational speed
+    % assigning inputs
     u = block.InputPort(1).Data; % in RPM
     us = u(1);
     u2 = u(2);
     
     if u1 <= 0
-        u1 = 1e-6;
+        u1 = 1e-10;
     end
       
+    d = block.InputPort(2).Data;
+    fxd = d(1);    % disturbance: force x
+    fyd = d(2);    % disturbance: force y
+    fzd = d(3);    % disturbance: force z
+    tau_rd = d(4); % disturbance: torque roll
+    tau_pd = d(5); % disturbance: torque pitch
+    tau_yd = d(6); % disturbance: torque yaw
     
     %% assigning the derivatives (in inertial frame)  
     du1 = uj;
@@ -212,16 +251,22 @@ function Derivatives(block)
     
     l = quad.r;
     
-    ddphi = u2*l;
+    ddphi = u2 + tau_rd;
     
-    y4 = dphi^2 * sin(phi) * u1 - 2*dphi*cos(phi)*du1 -sin(phi)*us - l*cos(phi)*u1*u2;
-    z4 = -dphi^2 * cos(phi) * u1 - 2*dphi*sin(phi)*du1 + cos(phi)*us -l*sin(phi)*u1*u2;
+    ddy = -u1*sin(phi);
+    ddz = u1*cos(phi)-quad.g;
+    
+    
+    y3 = -uj*sin(phi)-u1*dphi*cos(phi);
+    z3 = uj*cos(phi) - u1*dphi*cos(phi);
+%     y4 = dphi^2 * sin(phi) * u1 - 2*dphi*cos(phi)*du1 -sin(phi)*us - l*cos(phi)*u1*u2;
+%     z4 = -dphi^2 * cos(phi) * u1 - 2*dphi*sin(phi)*du1 + cos(phi)*us -l*sin(phi)*u1*u2;
 	
     
     % ground condition
     
     % state derivative vector
-    f = [dy ddy y3 y4 dz ddz z3 z4 dphi ddphi du1 duj]';
+    f = [dy ddy dz ddz dphi ddphi du1 duj]';
     
     block.Derivatives.Data = f;
 %endfunction

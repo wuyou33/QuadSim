@@ -132,7 +132,8 @@ function CheckPrms(block)
 
 function InitializeConditions(block)
     close all;
-    figure('units','normalized','outerposition',[0 0 1 1]);
+    figure;
+    %figure('units','normalized','outerposition',[0 0 1 1]);
 %endfunction
 
 
