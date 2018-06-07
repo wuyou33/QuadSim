@@ -259,11 +259,8 @@ function Derivatives(block)
     
     y3 = -uj*sin(phi)-u1*dphi*cos(phi);
     z3 = uj*cos(phi) - u1*dphi*cos(phi);
-%     y4 = dphi^2 * sin(phi) * u1 - 2*dphi*cos(phi)*du1 -sin(phi)*us - l*cos(phi)*u1*u2;
-%     z4 = -dphi^2 * cos(phi) * u1 - 2*dphi*sin(phi)*du1 + cos(phi)*us -l*sin(phi)*u1*u2;
-	
     
-    % ground condition
+    % TODO: ground condition
     
     % state derivative vector
     f = [dy ddy dz ddz dphi ddphi du1 duj]';
