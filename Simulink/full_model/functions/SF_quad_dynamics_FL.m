@@ -1,4 +1,4 @@
-function SF_quad_dynamics(block)
+function SF_quad_dynamics_FL(block)
 
 setup(block);
   

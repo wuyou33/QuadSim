@@ -1,4 +1,4 @@
-function SF_plot_sim(block)
+function SF_plot_sim_FL(block)
 
 setup(block);
   
