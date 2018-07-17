@@ -148,11 +148,11 @@ function InitializeConditions(block)
     % initial condition in deg ... convert to rad
     x = 0;
     dx = 0;
-    y = 0;
+    y = -1;
     dy = 0;
     z = 0.5;
     dz = 0;
-    phi = pi/12;
+    phi = 0;
     dphi = 0;
     the = 0;
     dthe = 0;
@@ -236,6 +236,7 @@ function Derivatives(block)
     
     ddphi = u2 + tau_rd;
     
+   
 
 
     % TODO: ground condition

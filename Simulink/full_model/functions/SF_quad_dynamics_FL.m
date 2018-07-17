@@ -152,7 +152,7 @@ function InitializeConditions(block)
     % initial condition in deg ... convert to rad
     x = 0;
     dx = 0;
-    y = 0;
+    y = -1;
     dy = 0;
     ddy = 0;
     y3 = 0;
@@ -160,9 +160,9 @@ function InitializeConditions(block)
     dz = 0;
     ddz = 0;
     z3 = 0;
-    phi = pi/6;
+    phi = 0;
     dphi = 0;
-    the = pi/12;
+    the = 0;
     dthe = 0;
     psi = 0;
     dpsi = 0;
